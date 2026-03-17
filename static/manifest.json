@@ -1,7 +1,7 @@
 {
   "manifest_version": 2,
   "name": "Shaper",
-  "version": "0.1.3",
+  "version": "0.1.4",
   "description": "Capture API traffic, infer schemas, and export OpenAPI specs. Supports HTTP, GraphQL, gRPC-Web, and SSE.",
   "permissions": [
     "webRequest",
