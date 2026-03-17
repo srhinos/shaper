@@ -1,0 +1,44 @@
+{
+  "manifest_version": 2,
+  "name": "Shaper",
+  "version": "0.1.0",
+  "description": "Capture API traffic, infer schemas, and export OpenAPI specs. Supports HTTP, GraphQL, gRPC-Web, and SSE.",
+  "permissions": [
+    "webRequest",
+    "webRequestBlocking",
+    "tabs",
+    "storage",
+    "unlimitedStorage",
+    "<all_urls>"
+  ],
+  "background": {
+    "scripts": ["background.js"]
+  },
+  "browser_action": {
+    "default_popup": "popup/popup.html",
+    "default_title": "Shaper",
+    "default_icon": {
+      "48": "icons/icon-48.png",
+      "96": "icons/icon-96.png",
+      "128": "icons/icon-128.png"
+    }
+  },
+  "icons": {
+    "48": "icons/icon-48.png",
+    "96": "icons/icon-96.png",
+    "128": "icons/icon-128.png"
+  },
+  "commands": {
+    "toggle-capture": {
+      "suggested_key": { "default": "Alt+Shift+C" },
+      "description": "Toggle capture on active tab"
+    }
+  },
+  "browser_specific_settings": {
+    "gecko": {
+      "id": "shaper@example.com",
+      "strict_min_version": "67.0"
+    }
+  },
+  "homepage_url": "https://github.com/srhinos/shaper"
+}

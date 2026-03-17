@@ -1,0 +1,22 @@
+{
+  "name": "shaper",
+  "version": "1.0.0",
+  "description": "Capture API traffic, infer schemas, and export OpenAPI specs.",
+  "private": true,
+  "scripts": {
+    "build": "node esbuild.config.mjs",
+    "watch": "node esbuild.config.mjs --watch",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "typecheck": "tsc --noEmit",
+    "lint": "web-ext lint --source-dir dist/",
+    "package": "web-ext build --source-dir dist/ --artifacts-dir artifacts/ --overwrite-dest"
+  },
+  "devDependencies": {
+    "@types/webextension-polyfill": "^0.12.5",
+    "esbuild": "^0.27.4",
+    "typescript": "^5.9.3",
+    "vitest": "^4.1.0",
+    "web-ext": "^10.0.0"
+  }
+}

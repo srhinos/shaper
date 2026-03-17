@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Shaper Dashboard</title>
+<link rel="icon" type="image/png" sizes="48x48" href="../icons/icon-48.png">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { background: #1e1e2e; color: #cdd6f4; font-family: monospace; font-size: 12px; height: 100vh; display: flex; flex-direction: column; }
+
+  .top-bar { display: flex; align-items: center; padding: 8px 16px; background: #181825; border-bottom: 1px solid #313244; gap: 12px; }
+  .top-bar h1 { font-size: 14px; font-weight: bold; color: #89b4fa; }
+  .top-bar .spacer { flex: 1; }
+  .top-bar button { background: #313244; color: #cdd6f4; border: 1px solid #45475a; border-radius: 4px; padding: 4px 12px; cursor: pointer; font-family: monospace; font-size: 11px; }
+  .top-bar button:hover { background: #45475a; }
+  .top-bar button.active { background: #a6e3a1; color: #1e1e2e; }
+  .top-bar .capture-controls { display: flex; gap: 4px; align-items: center; }
+  .top-bar .capture-controls button { font-size: 10px; padding: 3px 8px; }
+  .top-bar .clear-btn { background: none; border: 1px solid #f38ba844; color: #f38ba8; }
+  .top-bar .clear-btn:hover { background: #f38ba822; }
+  .domain-filter-bar { display: flex; gap: 4px; padding: 4px 16px; background: #181825; border-bottom: 1px solid #313244; align-items: center; }
+  .domain-filter-bar input { background: #313244; color: #cdd6f4; border: 1px solid #45475a; border-radius: 4px; padding: 3px 8px; font-family: monospace; font-size: 10px; outline: none; width: 200px; }
+  .domain-filter-bar input:focus { border-color: #89b4fa; }
+  .domain-filter-bar input::placeholder { color: #585b70; }
+  .domain-filter-bar .domain-chip { display: inline-flex; align-items: center; gap: 3px; background: #89b4fa22; border: 1px solid #89b4fa44; border-radius: 3px; padding: 1px 6px; font-size: 9px; color: #89b4fa; }
+  .domain-filter-bar .domain-chip .remove { cursor: pointer; color: #f38ba8; }
+  .domain-filter-bar label { font-size: 10px; color: #6c7086; }
+
+  .main { display: flex; flex: 1; overflow: hidden; }
+
+  .sidebar { width: 300px; min-width: 200px; background: #181825; border-right: 1px solid #313244; display: flex; flex-direction: column; overflow: hidden; }
+  .sidebar-search { padding: 8px; border-bottom: 1px solid #313244; }
+  .sidebar-search input { width: 100%; background: #313244; color: #cdd6f4; border: 1px solid #45475a; border-radius: 4px; padding: 5px 8px; font-family: monospace; font-size: 11px; outline: none; }
+  .sidebar-search input:focus { border-color: #89b4fa; }
+  .sidebar-search input::placeholder { color: #585b70; }
+  .endpoint-list { flex: 1; overflow-y: auto; padding: 4px 0; }
+
+  .domain-group { margin-bottom: 2px; }
+  .domain-header { padding: 4px 12px; font-size: 10px; color: #a6adc8; cursor: pointer; user-select: none; }
+  .domain-header:hover { color: #cdd6f4; }
+  .endpoint-item { padding: 5px 12px 5px 20px; cursor: pointer; display: flex; align-items: center; gap: 6px; font-size: 11px; }
+  .endpoint-item:hover { background: #313244; }
+  .endpoint-item.selected { background: #45475a; }
+  .method-badge { font-size: 9px; font-weight: bold; padding: 1px 4px; border-radius: 2px; min-width: 32px; text-align: center; }
+  .method-GET { background: #a6e3a122; color: #a6e3a1; }
+  .method-POST { background: #f9e2af22; color: #f9e2af; }
+  .method-PUT { background: #89b4fa22; color: #89b4fa; }
+  .method-PATCH { background: #b4befe22; color: #b4befe; }
+  .method-DELETE { background: #f38ba822; color: #f38ba8; }
+  .endpoint-path { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: #cdd6f4; }
+  .endpoint-count { font-size: 9px; color: #6c7086; }
+  .protocol-badge { font-size: 8px; color: #6c7086; background: #313244; padding: 0 3px; border-radius: 2px; }
+
+  .detail { flex: 1; overflow-y: auto; padding: 16px; }
+  .detail-empty { display: flex; align-items: center; justify-content: center; height: 100%; color: #6c7086; }
+
+  .detail-header { margin-bottom: 16px; }
+  .detail-header h2 { font-size: 14px; margin-bottom: 4px; }
+  .detail-header .meta { font-size: 11px; color: #a6adc8; }
+
+  .section { margin-bottom: 16px; background: #313244; border-radius: 6px; overflow: hidden; }
+  .section-header { padding: 8px 12px; background: #45475a; font-size: 11px; font-weight: bold; cursor: pointer; user-select: none; }
+  .section-body { padding: 12px; }
+
+  .schema-tree { font-size: 11px; }
+  .schema-key { color: #89b4fa; }
+  .schema-type { color: #a6e3a1; }
+  .schema-required { color: #f9e2af; font-size: 9px; }
+  .schema-optional { color: #6c7086; font-size: 9px; }
+  .schema-indent { padding-left: 16px; }
+
+  .sample-item { border-bottom: 1px solid #45475a; padding: 8px 0; }
+  .sample-item:last-child { border-bottom: none; }
+  .sample-summary { cursor: pointer; display: flex; gap: 8px; align-items: center; font-size: 11px; }
+  .sample-detail { margin-top: 8px; font-size: 11px; }
+  .sample-detail pre { background: #1e1e2e; padding: 8px; border-radius: 4px; overflow-x: auto; white-space: pre-wrap; word-break: break-all; max-height: 300px; overflow-y: auto; }
+  .curl-copy { background: #45475a; color: #cdd6f4; border: none; border-radius: 3px; padding: 2px 8px; cursor: pointer; font-family: monospace; font-size: 10px; }
+  .curl-copy:hover { background: #585b70; }
+  .copy-btn { background: #45475a; color: #a6adc8; border: none; border-radius: 3px; padding: 2px 8px; cursor: pointer; font-family: monospace; font-size: 9px; float: right; margin-left: 8px; }
+  .copy-btn:hover { background: #585b70; color: #cdd6f4; }
+  .copy-btn.copied { color: #a6e3a1; }
+  .quick-actions { display: flex; gap: 6px; margin-bottom: 12px; flex-wrap: wrap; }
+  .quick-actions button { background: #313244; color: #cdd6f4; border: 1px solid #45475a; border-radius: 4px; padding: 4px 10px; cursor: pointer; font-family: monospace; font-size: 10px; }
+  .quick-actions button:hover { background: #45475a; }
+
+  .header-table { width: 100%; border-collapse: collapse; font-size: 11px; }
+  .header-table th { text-align: left; padding: 4px 8px; color: #a6adc8; border-bottom: 1px solid #45475a; font-weight: normal; font-size: 10px; }
+  .header-table td { padding: 3px 8px; border-bottom: 1px solid #313244; vertical-align: top; }
+  .header-table td:first-child { color: #89b4fa; white-space: nowrap; width: 200px; }
+  .header-table td:last-child { color: #cdd6f4; word-break: break-all; }
+  .header-table tr:hover { background: #45475a44; }
+
+  .sample-tabs { display: flex; gap: 0; margin-bottom: 8px; border-bottom: 1px solid #45475a; }
+  .sample-tab { padding: 4px 12px; font-size: 10px; cursor: pointer; color: #6c7086; border-bottom: 2px solid transparent; background: none; border-top: none; border-left: none; border-right: none; font-family: monospace; }
+  .sample-tab:hover { color: #cdd6f4; }
+  .sample-tab.active { color: #89b4fa; border-bottom-color: #89b4fa; }
+  .sample-tab-content { display: none; }
+  .sample-tab-content.active { display: block; }
+
+  .header-pre { background: #1e1e2e; padding: 8px 12px; border-radius: 4px; font-size: 11px; line-height: 1.6; margin: 0; white-space: pre-wrap; word-break: break-all; }
+  .header-pre .agg-header-name { color: #89b4fa; }
+  .header-pre .agg-header-count { color: #585b70; font-size: 9px; }
+
+  .status-bar { padding: 4px 16px; background: #181825; border-top: 1px solid #313244; font-size: 10px; color: #6c7086; display: flex; gap: 16px; }
+  .status-bar .recording-dot { color: #a6e3a1; }
+
+  .export-dropdown { position: relative; }
+  .export-menu { display: none; position: absolute; top: 100%; right: 0; background: #313244; border: 1px solid #45475a; border-radius: 4px; min-width: 220px; z-index: 100; margin-top: 4px; }
+  .export-menu.open { display: block; }
+  .export-menu button { display: block; width: 100%; text-align: left; background: none; border: none; color: #cdd6f4; padding: 6px 12px; cursor: pointer; font-family: monospace; font-size: 11px; }
+  .export-menu button:hover { background: #45475a; }
+  .export-menu .divider { border-top: 1px solid #45475a; margin: 4px 0; }
+
+  .settings-overlay { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: #00000088; z-index: 200; }
+  .settings-overlay.open { display: flex; align-items: center; justify-content: center; }
+  .settings-panel { background: #1e1e2e; border: 1px solid #45475a; border-radius: 8px; width: 500px; max-height: 80vh; overflow-y: auto; padding: 20px; }
+  .settings-panel h2 { font-size: 14px; margin-bottom: 16px; }
+  .settings-section { margin-bottom: 16px; }
+  .settings-section h3 { font-size: 12px; color: #a6adc8; margin-bottom: 8px; }
+  .preset-card { background: #313244; border-radius: 4px; padding: 8px 12px; margin-bottom: 4px; display: flex; align-items: center; gap: 8px; }
+  .preset-card label { flex: 1; cursor: pointer; }
+  .preset-card input[type="checkbox"] { accent-color: #89b4fa; }
+  .warning { background: #f9e2af22; border: 1px solid #f9e2af44; color: #f9e2af; padding: 8px 12px; border-radius: 4px; font-size: 11px; margin-bottom: 8px; }
+
+  .update-banner { display: none; }
+  .update-banner.visible { display: flex; align-items: center; gap: 12px; padding: 6px 16px; background: #89b4fa22; border-bottom: 1px solid #89b4fa44; font-size: 11px; color: #89b4fa; }
+  .update-banner a { color: #89b4fa; font-weight: bold; text-decoration: underline; }
+  .update-banner .dismiss { background: none; border: none; color: #6c7086; cursor: pointer; font-family: monospace; font-size: 14px; margin-left: auto; padding: 0 4px; }
+</style>
+</head>
+<body>
+  <div class="top-bar">
+    <h1>Shaper Dashboard</h1>
+    <div class="capture-controls">
+      <button id="dashAllTabs">All Tabs</button>
+      <button id="dashPause">Pause</button>
+    </div>
+    <span class="spacer"></span>
+    <div class="export-dropdown">
+      <button id="exportBtn">Export &#x25BE;</button>
+      <div class="export-menu" id="exportMenu"></div>
+    </div>
+    <button class="clear-btn" id="dashClear">Clear All</button>
+    <button id="settingsBtn">Settings</button>
+  </div>
+  <div class="domain-filter-bar" id="domainFilterBar">
+    <label>Domains:</label>
+    <input type="text" id="dashDomainInput" placeholder="Filter domain...">
+    <button id="dashAddDomain" style="font-size:10px;padding:3px 6px">+</button>
+    <span id="dashDomainChips"></span>
+  </div>
+  <div class="main">
+    <div class="sidebar">
+      <div class="sidebar-search">
+        <input type="text" id="searchInput" placeholder="Search endpoints...">
+      </div>
+      <div class="endpoint-list" id="endpointList"></div>
+    </div>
+    <div class="detail" id="detailPanel">
+      <div class="detail-empty">Select an endpoint to view details</div>
+    </div>
+  </div>
+  <div class="update-banner" id="updateBanner"></div>
+  <div class="status-bar" id="statusBar"></div>
+  <div class="settings-overlay" id="settingsOverlay">
+    <div class="settings-panel" id="settingsPanel"></div>
+  </div>
+<script src="dashboard.js"></script>
+</body>
+</html>
