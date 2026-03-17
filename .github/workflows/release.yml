@@ -20,9 +20,13 @@ jobs:
       - run: npm test
       - run: npm run build
       - run: npm run lint
-      - run: npm run package
+      - name: Sign extension
+        run: npx web-ext sign --source-dir dist/ --artifacts-dir artifacts/ --api-key "$AMO_JWT_ISSUER" --api-secret "$AMO_JWT_SECRET" --channel unlisted
+        env:
+          AMO_JWT_ISSUER: ${{ secrets.AMO_JWT_ISSUER }}
+          AMO_JWT_SECRET: ${{ secrets.AMO_JWT_SECRET }}
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
-          files: artifacts/*.zip
+          files: artifacts/*.xpi
           generate_release_notes: true
