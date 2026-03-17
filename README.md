@@ -1,6 +1,9 @@
 # Shaper
 
 A Firefox extension that captures API traffic as you browse, infers schemas from what it sees, and exports structured documentation. Supports HTTP, GraphQL, gRPC-Web/Protobuf, and SSE.
+<p align="center">
+<img width="800" height="605" alt="zen_xPcBpnCzqP" src="https://github.com/user-attachments/assets/5a4b2e84-b870-473e-95df-6924f2fa5f13" />
+</p>
 
 ## Install
 
