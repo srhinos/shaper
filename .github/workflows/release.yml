@@ -19,7 +19,8 @@ jobs:
       - run: npm run typecheck
       - run: npm test
       - run: npm run build
-      - run: npm run lint
+      - name: Lint (warnings ok, errors fail)
+        run: npx web-ext lint --source-dir dist/ --output=json | node -e "const d=JSON.parse(require('fs').readFileSync('/dev/stdin','utf8'));console.log(d.summary);if(d.summary.errors>0)process.exit(1)"
       - name: Sign and publish to AMO
         run: npx web-ext sign --source-dir dist/ --artifacts-dir artifacts/ --api-key "$AMO_JWT_ISSUER" --api-secret "$AMO_JWT_SECRET" --channel listed
         env:

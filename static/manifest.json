@@ -37,8 +37,7 @@
   "browser_specific_settings": {
     "gecko": {
       "id": "{d4f0cb2f-77a6-4b0a-e4be-e53639a18a8d}",
-      "strict_min_version": "67.0",
-      "data_collection_permissions": []
+      "strict_min_version": "67.0"
     }
   },
   "homepage_url": "https://github.com/srhinos/shaper"
