@@ -62,7 +62,7 @@ jobs:
         run: npm run build
 
       - name: Sign and publish to AMO
-        run: npx web-ext sign --source-dir dist/ --artifacts-dir artifacts/ --api-key "$AMO_JWT_ISSUER" --api-secret "$AMO_JWT_SECRET" --channel listed --amo-metadata amo-metadata.json
+        run: npx web-ext sign --source-dir dist/ --artifacts-dir artifacts/ --api-key "$AMO_JWT_ISSUER" --api-secret "$AMO_JWT_SECRET" --channel unlisted
         env:
           AMO_JWT_ISSUER: ${{ secrets.AMO_JWT_ISSUER }}
           AMO_JWT_SECRET: ${{ secrets.AMO_JWT_SECRET }}
