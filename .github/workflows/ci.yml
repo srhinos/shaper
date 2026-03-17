@@ -2,11 +2,11 @@ name: CI
 
 on:
   push:
-    branches: [master, main]
+    branches: [main]
   pull_request:
 
 jobs:
-  test:
+  lint:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -20,6 +20,18 @@ jobs:
       - run: npm run build
       - name: Lint (warnings ok, errors fail)
         run: npx web-ext lint --source-dir dist/ --output=json | node -e "const d=JSON.parse(require('fs').readFileSync('/dev/stdin','utf8'));console.log(d.summary);if(d.summary.errors>0)process.exit(1)"
+
+  build:
+    needs: lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run build
       - run: npm run package
       - uses: actions/upload-artifact@v4
         with:
