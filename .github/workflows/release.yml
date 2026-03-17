@@ -20,8 +20,8 @@ jobs:
       - run: npm test
       - run: npm run build
       - run: npm run lint
-      - name: Sign extension
-        run: npx web-ext sign --source-dir dist/ --artifacts-dir artifacts/ --api-key "$AMO_JWT_ISSUER" --api-secret "$AMO_JWT_SECRET" --channel unlisted
+      - name: Sign and publish to AMO
+        run: npx web-ext sign --source-dir dist/ --artifacts-dir artifacts/ --api-key "$AMO_JWT_ISSUER" --api-secret "$AMO_JWT_SECRET" --channel listed
         env:
           AMO_JWT_ISSUER: ${{ secrets.AMO_JWT_ISSUER }}
           AMO_JWT_SECRET: ${{ secrets.AMO_JWT_SECRET }}
