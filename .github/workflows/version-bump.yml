@@ -1,13 +1,29 @@
-name: Version Bump
+name: Version Bump and Release
 
 on:
   push:
     branches: [main]
 
 jobs:
-  bump:
+  lint:
     runs-on: ubuntu-latest
     if: "!contains(github.event.head_commit.message, '[skip bump]')"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run typecheck
+      - run: npm test
+      - run: npm run build
+      - name: Lint (warnings ok, errors fail)
+        run: npx web-ext lint --source-dir dist/ --output=json | node -e "const d=JSON.parse(require('fs').readFileSync('/dev/stdin','utf8'));console.log(d.summary);if(d.summary.errors>0)process.exit(1)"
+
+  release:
+    needs: lint
+    runs-on: ubuntu-latest
     permissions:
       contents: write
     steps:
@@ -15,12 +31,20 @@ jobs:
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Bump, tag, and push
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+
+      - name: Bump version
+        id: bump
         run: |
           CURRENT=$(grep '"version"' static/manifest.json | head -1 | sed 's/.*"version": *"\([^"]*\)".*/\1/')
           IFS='.' read -r MAJOR MINOR PATCH <<< "$CURRENT"
           PATCH=$((PATCH + 1))
           NEW="${MAJOR}.${MINOR}.${PATCH}"
+          echo "version=$NEW" >> "$GITHUB_OUTPUT"
           echo "Bumping $CURRENT -> $NEW"
 
           sed -i "s/\"version\": \"$CURRENT\"/\"version\": \"$NEW\"/" static/manifest.json
@@ -29,9 +53,23 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add static/manifest.json src/dashboard/dashboard.ts
-          git diff --cached --quiet || {
-            git commit -m "Bump Version To $NEW [skip bump]"
-            git tag "v$NEW"
-            git push
-            git push origin "v$NEW"
-          }
+          git commit -m "Bump Version To $NEW [skip bump]"
+          git tag "v$NEW"
+          git push
+          git push origin "v$NEW"
+
+      - name: Build
+        run: npm run build
+
+      - name: Sign and publish to AMO
+        run: npx web-ext sign --source-dir dist/ --artifacts-dir artifacts/ --api-key "$AMO_JWT_ISSUER" --api-secret "$AMO_JWT_SECRET" --channel listed
+        env:
+          AMO_JWT_ISSUER: ${{ secrets.AMO_JWT_ISSUER }}
+          AMO_JWT_SECRET: ${{ secrets.AMO_JWT_SECRET }}
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ steps.bump.outputs.version }}
+          files: artifacts/*.xpi
+          generate_release_notes: true
