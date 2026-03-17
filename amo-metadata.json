@@ -4,5 +4,8 @@
   },
   "categories": {
     "firefox": ["web-development"]
+  },
+  "summary": {
+    "en-US": "Capture API traffic, infer schemas, and export OpenAPI specs."
   }
 }
