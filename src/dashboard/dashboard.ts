@@ -157,7 +157,7 @@ async function init(): Promise<void> {
 }
 
 const REPO = 'srhinos/shaper';
-const CURRENT_VERSION = '0.1.0';
+const CURRENT_VERSION = '0.1.1';
 
 async function checkForUpdates(): Promise<void> {
   try {
